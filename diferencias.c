@@ -23,12 +23,12 @@ int main (int argc, char **argv)
 	int num_proc = atoi(argv[1]);
 	int i,j,k=0;
 	float Tmax = 5*pow(N,2.2);
-	int tot_steps = (int) Tmax/dt, dif = (int) tot_steps/N;
+	int tot_steps = (int) Tmax/dt, dif = (int) tot_steps/N, t_steps=N;
 	float *x,*v,*a,*x_mat;
 	FILE *f;
 	
 	//Asignacion de Memoria
-	if(!(x_mat = malloc(N*(N+1)*sizeof(float))))
+	if(!(x_mat = malloc(N*(t_steps+1)*sizeof(float))))
 	{
 		printf("Allocation error x_mat\n");
 	}
@@ -54,16 +54,17 @@ int main (int argc, char **argv)
 			x[i]=sin(M_PI*i/(N-1));
 		}
 	k=save_vec(x,x_mat,k);
-	init_zeros(v,N);
+	//init_zeros(v,N);
 	
 	compute_accel(x,v,a);
 	
 	#pragma omp parallel for private(i), shared(v,N)
 		for (i=0;i<N;i++)
 		{
-			v[i]+=0.5*dt*a[i];
+			v[i]=0.5*dt*a[i];
 		}
 	
+	dif = (int) tot_steps/t_steps;
 	//Iterar
 	for(i=1;i<tot_steps;i++)
 	{
@@ -81,8 +82,8 @@ int main (int argc, char **argv)
 	//Imprimir
 	f = fopen("output.txt", "w");
 	fprintf(f,"%d\n", N);
-	fprintf(f,"%d\n", N+1);
-	for(i=0;i<N+1;i++)
+	fprintf(f,"%d\n", t_steps+1);
+	for(i=0;i<t_steps+1;i++)
 	{
 		for(j=0;j<N;j++)
 		{
@@ -128,7 +129,7 @@ void step(float *vector, float *deriv)
 	#pragma omp parallel for private(i), shared(vector,deriv,N)
 		for(i=0;i<N;i++)
 		{
-			vector[i]+=deriv[i]*dt;
+			vector[i]+=0.5*deriv[i]*dt;
 			//printf("%f\n",vector[i]);
 		}
 	//getchar();
