@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "omp.h"
 #include <math.h>
+#include <time.h>
 
 int N=64, modes=3, num_proc ;
 float beta=1,dt=5e-3;
@@ -15,6 +16,7 @@ int save_vec(float *vector, float *matrix, int index);
 
 int main (int argc, char **argv)
 {
+	clock_t start = clock();
 	if(argc!=2)
 	{
 		printf("Must introduce number of processors\n");
@@ -26,7 +28,7 @@ int main (int argc, char **argv)
 	float Tmax = 5*pow(N,2.2);
 	int tot_steps = (int) Tmax/dt, dif = (int) tot_steps/N, t_steps=1000;
 	float *x,*v,*a,*x_mat,*En;
-	FILE *f, *E;
+	FILE *f, *E, *T;
 	
 	//Asignacion de Memoria
 	if(!(x_mat = malloc(N*(t_steps+1)*sizeof(float))))
@@ -125,6 +127,11 @@ int main (int argc, char **argv)
 	free(a);
 	free(En);
 	free(w);
+	clock_t end = clock();
+	float seconds = (float)(end - start) / CLOCKS_PER_SEC;
+	T = fopen("Times.txt", "a");
+	fprintf(T,"%d\t%f\n",num_proc,seconds);
+	fclose(T);
 	return 0;
 }
 
