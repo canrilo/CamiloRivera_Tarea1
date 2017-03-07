@@ -1,3 +1,0 @@
-user	0m0.001s
-user	0m0.012s
-user	0m0.020s

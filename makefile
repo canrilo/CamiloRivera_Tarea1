@@ -7,12 +7,12 @@ diferencias: diferencias.c
 tiempos.txt:
 	touch tiempos.txt
 
-output.txt: diferencias
-	{ time ./diferencias 1 ; } |& grep "user">>tiempos.txt
+output.txt: diferencias 
+	@echo "{ time ./diferencias 1 ; } |& grep "user">>tiempos.txt"
 	rm output.txt
-	{ time ./diferencias 2 ; } |& grep "user">>tiempos.txt
+	@echo "{ time ./diferencias 2 ; } |& grep "user">>tiempos.txt"
 	rm output.txt
-	{ time ./diferencias 4 ; } |& grep "user">>tiempos.txt
+	@echo "{ time ./diferencias 4 ; } |& grep "user">>tiempos.txt"
 
 evolution.png: output.txt Graf_resultado.py
 	python Graf_resultado.py
@@ -21,4 +21,4 @@ times.png: tiempos.txt Graf_tiempo.py
 	python Graf_tiempo.py
 
 clean:
-	rm diferencias output.txt tiempos.txt evolution.png times.png 
+	rm diferencias output.txt tiempos.txt evolution.png times.png Energies.txt energies.png
