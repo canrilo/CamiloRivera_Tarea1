@@ -6,7 +6,7 @@
 int N=64;
 double beta=1,dt=5e-3;
 
-void step(float *vector, float *deriv);
+void step(float *vector, float *deriv, float mult);
 void init_zeros(float *v, int size);
 void compute_accel(float *pos, float *vel, float *accel);
 int save_vec(float *vector, float *matrix, int index);
@@ -23,8 +23,8 @@ int main (int argc, char **argv)
 	int num_proc = atoi(argv[1]);
 	int i,j,k=0;
 	float Tmax = 5*pow(N,2.2);
-	int tot_steps = (int) Tmax/dt, dif = (int) tot_steps/N, t_steps=N;
-	float *x,*v,*a,*x_mat;
+	int tot_steps = (int) Tmax/dt, dif = (int) tot_steps/N, t_steps=1000;
+	float *x,*v,*a,*x_mat,*E1,*E2,*E3;
 	FILE *f;
 	
 	//Asignacion de Memoria
@@ -44,6 +44,18 @@ int main (int argc, char **argv)
 	{
 		printf("Allocation error x\n");
 	}
+	if(!(E1 = malloc((t_steps+1)*sizeof(float))))
+	{
+		printf("Allocation error E1\n");
+	}
+	if(!(E2 = malloc((t_steps+1)*sizeof(float))))
+	{
+		printf("Allocation error E2\n");
+	}
+	if(!(E3 = malloc((t_steps+1)*sizeof(float))))
+	{
+		printf("Allocation error E3\n");
+	}
 	
 	omp_set_num_threads(num_proc);
 	
@@ -53,7 +65,7 @@ int main (int argc, char **argv)
 		{
 			x[i]=sin(M_PI*i/(N-1));
 		}
-	k=save_vec(x,x_mat,k);
+	
 	//init_zeros(v,N);
 	
 	compute_accel(x,v,a);
@@ -64,13 +76,16 @@ int main (int argc, char **argv)
 			v[i]=0.5*dt*a[i];
 		}
 	
+	save_energies(
+	k=save_vec(x,x_mat,k);
+	
 	dif = (int) tot_steps/t_steps;
 	//Iterar
 	for(i=1;i<tot_steps;i++)
 	{
-		step(x,v);
+		step(x,v,1.0);
 		compute_accel(x,v,a);
-		step(v,a);
+		step(v,a,1.0);
 		//printf("step: %d\n",i);
 		if(i%dif==0)
 		{
@@ -81,6 +96,7 @@ int main (int argc, char **argv)
 	
 	//Imprimir
 	f = fopen("output.txt", "w");
+	E = fopen("Energies.txt", "w");
 	fprintf(f,"%d\n", N);
 	fprintf(f,"%d\n", t_steps+1);
 	for(i=0;i<t_steps+1;i++)
@@ -90,11 +106,15 @@ int main (int argc, char **argv)
 			fprintf(f,"%f\n", x_mat[i*N+j]);	
 		}
 	}
+	fclose(E);
 	fclose(f);
 	free(x);
 	free(x_mat);
 	free(v);
 	free(a);
+	free(E1);
+	free(E2);
+	free(E3);
 	
 	return 0;
 }
@@ -122,14 +142,14 @@ void compute_accel(float *pos, float *vel, float *accel)
 	//getchar();
 }
 
-void step(float *vector, float *deriv)
+void step(float *vector, float *deriv, float mult)
 {
 	int i;
 	
 	#pragma omp parallel for private(i), shared(vector,deriv,N)
 		for(i=0;i<N;i++)
 		{
-			vector[i]+=0.5*deriv[i]*dt;
+			vector[i]+=mult*deriv[i]*dt;
 			//printf("%f\n",vector[i]);
 		}
 	//getchar();
