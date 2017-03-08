@@ -4,8 +4,8 @@
 #include <math.h>
 #include <time.h>
 
-int N=64, modes=3, num_proc ;
-float beta=1,dt=5e-3;
+int N=64, modes=3, num_proc;
+float beta=1.0,dt=5e-3;
 float *w;
 
 void save_energies(float *Energies,float *pos, float *vel, int index);
@@ -25,7 +25,7 @@ int main (int argc, char **argv)
 	
 	//Declaracion de variables
 	int i,j,k=0;
-	float Tmax = 5*pow(N,2.2);
+	float Tmax = 5.0*pow(N,2.2);
 	int tot_steps = (int) Tmax/dt, dif = (int) tot_steps/N, t_steps=1000;
 	float *x,*v,*x_mat,*En;
 	FILE *f, *E, *T;
@@ -179,6 +179,6 @@ void save_energies(float *Energies,float *pos, float *vel,int index)
 				sumx = sumx + pos[i]*sin(M_PI*(j+1)*(i+1)/N);
 				sumv = sumv + vel[i]*sin(M_PI*(j+1)*(i+1)/N);	
 			}
-		Energies[index*modes+j]=(w[j]*pow(sumx,2.0)+pow(sumv,2.0))/N;
+		Energies[index*modes+j]=(float) (w[j]*pow(sumx,2.0)+pow(sumv,2.0))/N;
 	}
 }
