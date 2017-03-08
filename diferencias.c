@@ -5,14 +5,14 @@
 #include <time.h>
 
 int N=64, modes=3, num_proc;
-float beta=1.0,dt=5e-3;
-float *w;
+double beta=1.0,dt=5e-3;
+double *w;
 
-void save_energies(float *Energies,float *pos, float *vel, int index);
-void step(float *vector, float *deriv, float mult);
-void init_zeros(float *v);
-void compute_vel(float *pos, float *vel, float mult);
-int save_vec(float *vector, float *matrix, int index);
+void save_energies(double *Energies,double *pos, double *vel, int index);
+void step(double *vector, double *deriv, double mult);
+void init_zeros(double *v);
+void compute_vel(double *pos, double *vel, double mult);
+int save_vec(double *vector, double *matrix, int index);
 
 int main (int argc, char **argv)
 {
@@ -25,29 +25,29 @@ int main (int argc, char **argv)
 	
 	//Declaracion de variables
 	int i,j,k=0;
-	float Tmax = 5.0*pow(N,2.2);
-	int tot_steps = (int) Tmax/dt, dif = (int) tot_steps/N, t_steps=1000;
-	float *x,*v,*x_mat,*En;
+	double Tmax = 5.0*pow(N,2.2);
+	int tot_steps = (int) Tmax/dt, dif = (int) tot_steps/N, t_steps=999;
+	double *x,*v,*x_mat,*En;
 	FILE *f, *E, *T;
 	
 	//Asignacion de Memoria
-	if(!(x_mat = malloc(N*(t_steps+1)*sizeof(float))))
+	if(!(x_mat = malloc(N*(t_steps+1)*sizeof(double))))
 	{
 		printf("Allocation error x_mat\n");
 	}
-	if(!(v = malloc(N*sizeof(float))))
+	if(!(v = malloc(N*sizeof(double))))
 	{
 		printf("Allocation error v\n");
 	}
-	if(!(x = malloc(N*sizeof(float))))
+	if(!(x = malloc(N*sizeof(double))))
 	{
 		printf("Allocation error x\n");
 	}
-	if(!(En = malloc(modes*(t_steps+1)*sizeof(float))))
+	if(!(En = malloc(modes*(t_steps+1)*sizeof(double))))
 	{
 		printf("Allocation error En\n");
 	}
-	if(!(w = malloc(modes*sizeof(float))))
+	if(!(w = malloc(modes*sizeof(double))))
 	{
 		printf("Allocation error w\n");
 	}
@@ -57,7 +57,7 @@ int main (int argc, char **argv)
 	num_proc = atoi(argv[1]);
 	omp_set_num_threads(num_proc);
 	
-	#pragma omp parallel for //private(i), shared(x,N)
+	#pragma omp parallel for private(i), shared(x,N)
 		for (i=0;i<N;i++)
 		{
 			x[i]=sin(M_PI*i/(N-1));
@@ -65,14 +65,15 @@ int main (int argc, char **argv)
 	
 	for(i=0;i<modes;i++)
 	{
-		w[i]=4.0*pow(sin((i+1)*M_PI)/(2.0*N),2.0);
+		w[i]=4.0*pow(sin((i+1)*M_PI/(2.0*N)),2.0);
 	}
 	
 	init_zeros(v);
-	compute_vel(x,v,0.5);
 	
 	save_energies(En,x,v,k);
 	k=save_vec(x,x_mat,k);
+	
+	compute_vel(x,v,0.5);
 	
 	dif = (int) tot_steps/t_steps;
 	
@@ -80,12 +81,13 @@ int main (int argc, char **argv)
 	for(i=1;i<tot_steps;i++)
 	{
 		step(x,v,1.0);
-		compute_vel(x,v,1.0);
 		if(i%dif==0)
 		{
 			save_energies(En,x,v,k);
 			k=save_vec(x,x_mat,k);
 		}
+		compute_vel(x,v,1.0);
+		
 	}
 	
 	//Imprimir
@@ -116,7 +118,7 @@ int main (int argc, char **argv)
 	free(w);
 	
 	clock_t end = clock();
-	float seconds = (float)(end - start) / CLOCKS_PER_SEC;
+	double seconds = (double)(end - start) / CLOCKS_PER_SEC;
 	T = fopen("Times.txt", "a");
 	fprintf(T,"%d\t%f\n",num_proc,seconds);
 	fclose(T);
@@ -124,7 +126,7 @@ int main (int argc, char **argv)
 	return 0;
 }
 
-void init_zeros(float *v)
+void init_zeros(double *v)
 {
 	int i;
 	#pragma omp parallel for private(i), shared(v)
@@ -134,17 +136,17 @@ void init_zeros(float *v)
 		}
 }
 	
-void compute_vel(float *pos, float *vel, float mult)
+void compute_vel(double *pos, double *vel, double mult)
 {
 	int i;
 	#pragma omp parallel for private(i), shared(pos,vel)
 		for (i=1;i<N-1;i++)
 		{
-			vel[i]+=dt*mult*((pos[i+1]-2.0*pos[i]+pos[i-1])+beta*(pow(pos[i+1]-pos[i],3)-pow(pos[i]-pos[i-1],3)));
+			vel[i]+=dt*mult*((pos[i+1]-2.0*pos[i]+pos[i-1])+beta*(pow(pos[i+1]-pos[i],2.0)-pow(pos[i]-pos[i-1],2.0)));
 		}
 }
 
-void step(float *vector, float *deriv, float mult)
+void step(double *vector, double *deriv, double mult)
 {
 	int i;
 	#pragma omp parallel for private(i), shared(vector,deriv)
@@ -154,7 +156,7 @@ void step(float *vector, float *deriv, float mult)
 		}
 }
 
-int save_vec(float *vector, float *matrix, int index)
+int save_vec(double *vector, double *matrix, int index)
 {
 	int i;
 	#pragma omp parallel for private(i), shared(vector,matrix,index)
@@ -165,10 +167,10 @@ int save_vec(float *vector, float *matrix, int index)
 	return ++index;
 }
 
-void save_energies(float *Energies,float *pos, float *vel,int index)
+void save_energies(double *Energies,double *pos, double *vel,int index)
 {
 	int i,j;
-	float sumx,sumv;
+	double sumx,sumv;
 	for(j=0;j<modes;j++)
 	{
 		sumx=0.0;
@@ -176,9 +178,9 @@ void save_energies(float *Energies,float *pos, float *vel,int index)
 		#pragma omp parallel for reduction(+:sumx,sumv), private(i), shared(Energies,pos,vel,index,j)
 			for(i=0;i<N;i++)
 			{
-				sumx = sumx + pos[i]*sin(M_PI*(j+1)*(i+1)/N);
-				sumv = sumv + vel[i]*sin(M_PI*(j+1)*(i+1)/N);	
+				sumx = sumx + pos[i]*sin(M_PI*(j+1)*(i)/(N-1));
+				sumv = sumv + vel[i]*sin(M_PI*(j+1)*(i)/(N-1));	
 			}
-		Energies[index*modes+j]=(float) (w[j]*pow(sumx,2.0)+pow(sumv,2.0))/N;
+		Energies[index*modes+j]= (double)(w[j]*pow(sumx,2)+pow(sumv,2))/N;
 	}
 }
