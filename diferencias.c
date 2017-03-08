@@ -140,7 +140,7 @@ void compute_vel(float *pos, float *vel, float mult)
 	#pragma omp parallel for private(i), shared(pos,vel)
 		for (i=1;i<N-1;i++)
 		{
-			vel[i]+=mult*((pos[i+1]-2.0*pos[i]+pos[i-1])+beta*(pow(pos[i+1]-pos[i],3)-pow(pos[i]-pos[i-1],3)));
+			vel[i]+=dt*mult*((pos[i+1]-2.0*pos[i]+pos[i-1])+beta*(pow(pos[i+1]-pos[i],3)-pow(pos[i]-pos[i-1],3)));
 		}
 }
 
@@ -173,7 +173,7 @@ void save_energies(float *Energies,float *pos, float *vel,int index)
 	{
 		sumx=0.0;
 		sumv=0.0;
-		#pragma omp parallel for reduction(+:sumx,sumv) //private(i), shared(Energies,pos,vel,index,j)
+		#pragma omp parallel for reduction(+:sumx,sumv), private(i), shared(Energies,pos,vel,index,j)
 			for(i=0;i<N;i++)
 			{
 				sumx = sumx + pos[i]*sin(M_PI*(j+1)*(i+1)/N);
