@@ -8,13 +8,14 @@ with open('Times.txt','r') as infile:
 	x=[[float(time) for time in times.rstrip('\n').split('\t')] for times in infile]
 
 x=np.matrix(x)
+x.sort(0)
 #y=x[:,0]*60+x[:,1]
 fig = plt.figure()
 ax = fig.add_subplot(111)
 
 ax.plot(x[:,0],x[:,1],'s-')
-z = np.array(x[:,0])
-b=['1','2','4']
+z = np.array(x[:,0])[:,0]
+b=[str(int(x)) for x in z]
 plt.xticks(z,b)
 plt.ylabel('Tiempo (s)')
 plt.xlabel('# Procs')
