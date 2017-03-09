@@ -142,7 +142,7 @@ void compute_vel(double *pos, double *vel, double mult)
 	#pragma omp parallel for private(i), shared(pos,vel)
 		for (i=1;i<N-1;i++)
 		{
-			vel[i]+=dt*mult*((pos[i+1]-2.0*pos[i]+pos[i-1])+beta*(pow(pos[i+1]-pos[i],2.0)-pow(pos[i]-pos[i-1],2.0)));
+			vel[i]+=dt*mult*((pos[i+1]-2.0*pos[i]+pos[i-1])+beta*(pow(pos[i+1]-pos[i],3.0)-pow(pos[i]-pos[i-1],3.0)));
 		}
 }
 
@@ -178,8 +178,8 @@ void save_energies(double *Energies,double *pos, double *vel,int index)
 		#pragma omp parallel for reduction(+:sumx,sumv), private(i), shared(Energies,pos,vel,index,j)
 			for(i=0;i<N;i++)
 			{
-				sumx = sumx + pos[i]*sin(M_PI*(j+1)*(i)/(N-1));
-				sumv = sumv + vel[i]*sin(M_PI*(j+1)*(i)/(N-1));	
+				sumx = sumx + pos[i]*sin(M_PI*(j+1)*(i)/(N));
+				sumv = sumv + vel[i]*sin(M_PI*(j+1)*(i)/(N));	
 			}
 		Energies[index*modes+j]= (double)(w[j]*pow(sumx,2)+pow(sumv,2))/N;
 	}
