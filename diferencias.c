@@ -142,7 +142,7 @@ void compute_vel(double *pos, double *vel, double mult)
 	#pragma omp parallel for private(i), shared(pos,vel)
 		for (i=1;i<N-1;i++)
 		{
-			vel[i]+=dt*mult*((pos[i+1]-2.0*pos[i]+pos[i-1])+beta*(pow(pos[i+1]-pos[i],3.0)-pow(pos[i]-pos[i-1],3.0)));
+			vel[i]+=dt*mult*((pos[i+1]-2.0*pos[i]+pos[i-1])+beta*(pow(pos[i+1]-pos[i],2.0)-pow(pos[i]-pos[i-1],2.0)));
 		}
 }
 
